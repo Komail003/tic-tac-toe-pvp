@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Futuristic Tic-Tac-Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Emblema+One&display=swap"
+      rel="stylesheet">
+    <style>
+      /* Particle Canvas */
+      #particle-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Emblema One", system-ui;
+        color: #00ffea;
+
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: radial-gradient(circle, #0f0f0f, #1a1a1a);
+        /* Futuristic custom cursor (SVG triangle with gradient) */
+        cursor: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0ibm9uZSI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMzIsMTYgMCwzMiIgZmlsbD0idXJsKCNncmFkKSIvPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMzIiIHkyPSIzMiI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzAwZmZlYSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2ZmMDBmZiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjwvc3ZnPg=="), auto;
+      }
+
+      .container {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1 {
+        font-size: 3rem;
+        text-transform: uppercase;
+        text-shadow: 0 0 20px #00ffea;
+        margin-top: 20px;
+        margin-bottom: 10px;
+      }
+
+      /* Player Names Display and Score */
+      #player-names {
+        display: none;
+        margin-bottom: 10px;
+        width: 400px;
+        display: flex;
+        justify-content: space-between;
+        text-transform: capitalize;
+      }
+      #player1-display,
+      #player2-display {
+        font-size: 1rem;
+        padding: 10px;
+      }
+      .active {
+        box-shadow: 0 0 20px 5px #00ffea;
+        border-radius: 10px;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 120px);
+        grid-template-rows: repeat(3, 120px);
+        gap: 10px;
+        position: relative;
+        margin: 10px auto; /* Center the board horizontally */
+      }
+
+      .cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 3.5rem;
+        border: 2px solid #00ffea;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+
+      .cell:hover {
+        box-shadow: 0 0 20px #00ffea;
+        transform: scale(1.1);
+      }
+
+      .cell.taken {
+        cursor: not-allowed;
+      }
+
+      #reset {
+        padding: 15px 30px;
+        font-size: 1.5rem;
+        background: transparent;
+        color: #00ffea;
+        border: 2px solid #00ffea;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      #reset:hover {
+        background: #00ffea;
+        color: #0f0f0f;
+        box-shadow: 0 0 30px #00ffea;
+      }
+
+      #player-inputs {
+        margin-bottom: 30px;
+      }
+
+      input {
+        padding: 10px;
+        margin: 10px;
+        font-size: 1rem;
+        border: 2px solid #00ffea;
+        border-radius: 10px;
+        background: transparent;
+        color: #00ffea;
+        text-align: center;
+      }
+
+      #start-game {
+        padding: 15px 30px;
+        font-size: 1.5rem;
+        background: transparent;
+        color: #00ffea;
+        border: 2px solid #00ffea;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      #start-game:hover {
+        background: #00ffea;
+        color: #0f0f0f;
+        box-shadow: 0 0 30px #00ffea;
+      }
+
+      .win-line {
+        position: absolute;
+        height: 10px;
+        background: #00ffea;
+        box-shadow: 0 0 20px #00ffea;
+        z-index: 10;
+        transform-origin: 0 0;
+        transition: transform 0.7s ease;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+
+      .modal-content {
+        background-color: #1a1a1a;
+        margin: 15% auto;
+        padding: 20px;
+        border: 2px solid #00ffea;
+        width: 80%;
+        max-width: 400px;
+        text-align: center;
+        border-radius: 10px;
+        color: #00ffea;
+      }
+
+      .close {
+        color: #00ffea;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: #ff00ff;
+        text-decoration: none;
+      }
+
+      #modal-button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 1.2rem;
+        border: 2px solid #00ffea;
+        background: transparent;
+        color: #00ffea;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      #modal-button:hover {
+        background: #00ffea;
+        color: #0f0f0f;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Particle Canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="container">
+      <h1>Tic-Tac-Toe</h1>
+
+      <div id="player-inputs">
+        <input type="text" id="player1" placeholder="Player 1 Name"
+          required />
+        <input type="text" id="player2" placeholder="Player 2 Name"
+          required />
+        <button id="start-game" onclick="startGame()">Start
+          Game</button>
+      </div>
+
+      <div id="player-names">
+        <div id="player1-display"></div>
+        <div id="player2-display"></div>
+      </div>
+
+      <div class="board" id="board" style="display: none;"></div>
+      <button id="reset" onclick="resetGame()"
+        style="display: none;">Restart Game</button>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="close-modal">&times;</span>
+        <p id="modal-message"></p>
+        <button id="modal-button">OK</button>
+      </div>
+    </div>
+
+    <script>
+      /***********************
+       * Particle Animation  *
+       ***********************/
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.radius = Math.random() * 2 + 1;
+          this.speedX = (Math.random() - 0.5) * 1;
+          this.speedY = (Math.random() - 0.5) * 1;
+          this.alpha = Math.random() * 0.5 + 0.5;
+        }
+
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          // Wrap around edges
+          if (this.x < 0) this.x = canvas.width;
+          if (this.x > canvas.width) this.x = 0;
+          if (this.y < 0) this.y = canvas.height;
+          if (this.y > canvas.height) this.y = 0;
+        }
+
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 255, 234, ${this.alpha})`;
+          ctx.fill();
+        }
+      }
+
+      const particlesArray = [];
+      const numberOfParticles = Math.floor((canvas.width * canvas.height) / 9000);
+
+      function initParticles() {
+        particlesArray.length = 0;
+        for (let i = 0; i < numberOfParticles; i++) {
+          particlesArray.push(new Particle());
+        }
+      }
+
+      function animateParticles() {
+        // Create a gradient background
+        let gradient = ctx.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          0,
+          canvas.width / 2,
+          canvas.height / 2,
+          canvas.width
+        );
+        gradient.addColorStop(0, "#0f0f0f");
+        gradient.addColorStop(1, "#1a1a1a");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        particlesArray.forEach((particle) => {
+          particle.update();
+          particle.draw();
+        });
+        requestAnimationFrame(animateParticles);
+      }
+
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initParticles();
+      });
+
+      initParticles();
+      animateParticles();
+
+      /***********************
+       * Tic-Tac-Toe Game    *
+       ***********************/
+      const board = document.getElementById("board");
+      let currentPlayer, player1Symbol, player2Symbol, gameBoard;
+      let player1Name, player2Name;
+      let player1Score = 0,
+        player2Score = 0;
+      let modalCallback = null;
+
+      // Modal functions
+      function showModal(message, callback) {
+        const modal = document.getElementById("modal");
+        const modalMessage = document.getElementById("modal-message");
+        modalMessage.innerText = message;
+        modal.style.display = "block";
+        modalCallback = callback || null;
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("modal");
+        modal.style.display = "none";
+        if (modalCallback) {
+          modalCallback();
+          modalCallback = null;
+        }
+      }
+
+      document.getElementById("close-modal").onclick = closeModal;
+      document.getElementById("modal-button").onclick = closeModal;
+
+      function startGame() {
+        player1Name = document
+          .getElementById("player1")
+          .value.trim();
+        player2Name = document
+          .getElementById("player2")
+          .value.trim();
+
+        if (!player1Name || !player2Name) {
+          showModal("Please enter names for both players!");
+          return;
+        }
+
+        player1Symbol = player1Name.charAt(0).toUpperCase();
+        player2Symbol = player2Name.charAt(0).toUpperCase();
+        currentPlayer = player1Symbol;
+
+        // Load scores from localStorage
+        player1Score =
+          parseInt(
+            localStorage.getItem("ticTacToe_" + player1Name + "_score")
+          ) || 0;
+        player2Score =
+          parseInt(
+            localStorage.getItem("ticTacToe_" + player2Name + "_score")
+          ) || 0;
+
+        // Hide player inputs and show player names with score
+        document.getElementById("player-inputs").style.display = "none";
+        document.getElementById("player-names").style.display = "flex";
+        updateScoreDisplay();
+
+        board.style.display = "grid";
+        document.getElementById("reset").style.display = "inline-block";
+
+        resetGame();
+        updatePlayerHighlight();
+      }
+
+      function updateScoreDisplay() {
+        document.getElementById("player1-display").innerText =
+          player1Name +
+          " (" +
+          player1Symbol +
+          ") - Wins: " +
+          player1Score;
+        document.getElementById("player2-display").innerText =
+          player2Name +
+          " (" +
+          player2Symbol +
+          ") - Wins: " +
+          player2Score;
+      }
+
+      function createBoard() {
+        board.innerHTML = "";
+        gameBoard.forEach((value, index) => {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.addEventListener("click", () => makeMove(index));
+          cell.innerText = value || "";
+          board.appendChild(cell);
+        });
+      }
+
+      function makeMove(index) {
+        if (gameBoard[index] || checkWinner()) return;
+
+        gameBoard[index] = currentPlayer;
+        currentPlayer =
+          currentPlayer === player1Symbol ? player2Symbol : player1Symbol;
+        createBoard();
+        updatePlayerHighlight();
+
+        const winner = checkWinner();
+        if (winner) {
+          drawWinLine(winner.pattern);
+          // Update score based on winner and save to localStorage
+          if (winner.symbol === player1Symbol) {
+            player1Score++;
+            localStorage.setItem(
+              "ticTacToe_" + player1Name + "_score",
+              player1Score
+            );
+          } else {
+            player2Score++;
+            localStorage.setItem(
+              "ticTacToe_" + player2Name + "_score",
+              player2Score
+            );
+          }
+          updateScoreDisplay();
+          // Delay showing win modal to allow win line animation
+          setTimeout(() => {
+            showModal(`${winner.symbol} wins!`);
+          }, 800);
+        } else if (!gameBoard.includes(null)) {
+          showModal("It's a draw!");
+        }
+      }
+
+      function checkWinner() {
+        const winPatterns = [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8],
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8],
+          [0, 4, 8],
+          [2, 4, 6],
+        ];
+
+        for (const pattern of winPatterns) {
+          const [a, b, c] = pattern;
+          if (
+            gameBoard[a] &&
+            gameBoard[a] === gameBoard[b] &&
+            gameBoard[a] === gameBoard[c]
+          ) {
+            return { symbol: gameBoard[a], pattern };
+          }
+        }
+        return null;
+      }
+
+      function drawWinLine(pattern) {
+        // Remove any existing win line
+        const existingLine = board.querySelector(".win-line");
+        if (existingLine) {
+          existingLine.remove();
+        }
+
+        // Using first and third cells for the line endpoints
+        const [a, , c] = pattern;
+        const cells = document.querySelectorAll(".cell");
+        const line = document.createElement("div");
+        line.className = "win-line";
+        board.appendChild(line);
+
+        // Get board's bounding rectangle
+        const boardRect = board.getBoundingClientRect();
+        // Get bounding rectangles for the winning cells
+        const startRect = cells[a].getBoundingClientRect();
+        const endRect = cells[c].getBoundingClientRect();
+
+        // Calculate the centers of the starting and ending cells relative to the board
+        const startX = startRect.left - boardRect.left + startRect.width / 2;
+        const startY = startRect.top - boardRect.top + startRect.height / 2;
+        const endX = endRect.left - boardRect.left + endRect.width / 2;
+        const endY = endRect.top - boardRect.top + endRect.height / 2;
+
+        // Set the line's position and dimensions
+        line.style.left = `${startX}px`;
+        line.style.top = `${startY}px`;
+        const distance = Math.hypot(endX - startX, endY - startY);
+        line.style.width = `${distance}px`;
+        const angle = Math.atan2(endY - startY, endX - startX);
+        line.style.transform = `rotate(${angle}rad)`;
+      }
+
+      function updatePlayerHighlight() {
+        const player1Display = document.getElementById("player1-display");
+        const player2Display = document.getElementById("player2-display");
+        if (currentPlayer === player1Symbol) {
+          player1Display.classList.add("active");
+          player2Display.classList.remove("active");
+        } else {
+          player2Display.classList.add("active");
+          player1Display.classList.remove("active");
+        }
+      }
+
+      function resetGame() {
+        // Remove any existing win line
+        const existingLine = board.querySelector(".win-line");
+        if (existingLine) {
+          existingLine.remove();
+        }
+        gameBoard = Array(9).fill(null);
+        currentPlayer = player1Symbol;
+        createBoard();
+        updatePlayerHighlight();
+      }
+    </script>
+  </body>
+</html>
